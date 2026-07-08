@@ -4,17 +4,21 @@ import Board from "./components/Board";
 import Difficulty from "./components/Difficulty";
 import Header from "./components/Header";
 import createCards from "./data/createCards";
-import shuffle from "./itils/shuffle";
+import shuffle from "./utils/shuffle";
 
 export default function App() {
   const [cards, setCards] = useState(shuffle(createCards(10)));
- const [difficulty, setDifficulty] = useState(10);
+  const [difficulty, setDifficulty] = useState(10);
 
   const [firstCard, setFirstCard] = useState(null);
   const [secondCard, setSecondCard] = useState(null);
   const [disabled, setDisabled] = useState(false);
- 
+
   const [win, setWin] = useState(false);
+  const [moves, setMoves] = useState(0);
+
+  const [seconds, setSeconds] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const resetTurn = () => {
     setFirstCard(null);
@@ -22,17 +26,22 @@ export default function App() {
     setDisabled(false);
   };
 
-  const makeGame = (size) => {
+  const makeGame = (size = difficulty) => {
     setDifficulty(size);
     setCards(shuffle(createCards(size)));
 
     setFirstCard(null);
     setSecondCard(null);
     setDisabled(false);
+    setWin(false);
+    setMoves(0);
+    setSeconds(0);
+    setIsPlaying(false);
   };
 
   useEffect(() => {
     if (!firstCard || !secondCard) return;
+    setMoves((prev) => prev + 1);
 
     setDisabled(true);
 
@@ -58,11 +67,28 @@ export default function App() {
       }, 1000);
     }
   }, [secondCard]);
+  useEffect(() => {
+    const isWin = cards.every((card) => card.matched);
+    if (cards.length && isWin) {
+      setWin(true);
+    }
+  }, [cards]);
+
+  useEffect(() => {
+    if (!isPlaying || win) return;
+    const interval = setInterval(() => {
+      setSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isPlaying, win]);
 
   return (
     <div className="container">
-      <Header />
+      <Header moves={moves} seconds={seconds} />
       <Difficulty makeGame={makeGame} />
+      <button onClick={() => makeGame()}>  Restart Game
+</button>
+      {win && <div className="win">🎉 You Win!</div>}
       <Board
         cards={cards}
         setCards={setCards}
@@ -71,7 +97,7 @@ export default function App() {
         secondCard={secondCard}
         setSecondCard={setSecondCard}
         disabled={disabled}
-        setDisabled={setDisabled}
+        setIsPlaying={setIsPlaying}
       />
     </div>
   );

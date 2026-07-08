@@ -8,20 +8,20 @@ export default function Board({
   secondCard,
   setSecondCard,
   disabled,
-  setDisableds,
-}) 
-{
-
-const handleClick = (card) => {
-  if (disabled) return;  
-  if(card.opened || card.matched)  return 
-  const updated = cards.map((c) =>
-      c.id === card.id ? { ...c, opened: true } : c
+  setIsPlaying,
+}) {
+  const handleClick = (card) => {
+    if (disabled) return;
+    if (card.opened || card.matched) return;
+    setIsPlaying(true)
+    const updated = cards.map((c) =>
+      c.id === card.id ? { ...c, opened: true } : c,
     );
 
     setCards(updated);
 
     if (!firstCard) {
+      setIsPlaying(true);
       setFirstCard(card);
     } else {
       setSecondCard(card);
